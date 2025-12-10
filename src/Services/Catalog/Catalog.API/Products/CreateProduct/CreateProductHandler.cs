@@ -1,34 +1,41 @@
 ﻿
-namespace Catalog.API.Products.CreateProduct
+namespace Catalog.API.Products.CreateProduct;
+
+public record CreateProductCommand(string Name, List<string> Category, string Description, string ImageFile, decimal Price)
+    : ICommand<CreateProductResult>;
+public record CreateProductResult(Guid Id);
+
+public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
-    public record CreateProductCommand(
-        string Name,
-        string Description,
-        List<string> Category,
-        decimal Price,
-        string ImageFile) : ICommand<CreateProductResult>;
-
-    public record CreateProductResult(Guid Id);
-
-    internal class CreateProductCommandHandler(IDocumentSession session) : ICommandHandler<CreateProductCommand, CreateProductResult>
+    public CreateProductCommandValidator()
     {
-        public async Task<CreateProductResult> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Category).NotEmpty();
+        RuleFor(x => x.Description).NotEmpty().MaximumLength(1000);
+        RuleFor(x => x.ImageFile).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Price).GreaterThan(0);
+    }
+}
+
+internal class CreateProductCommandHandler(IDocumentSession session)
+    : ICommandHandler<CreateProductCommand, CreateProductResult>
+{
+    public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+    {
+        var product = new Product
         {
-            var product = new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = request.Name,
-                Description = request.Description,
-                Category = request.Category,
-                Price = request.Price,
-                ImageFile = request.ImageFile
-            };  
+            Name = command.Name,
+            Category = command.Category,
+            Description = command.Description,
+            ImageFile = command.ImageFile,
+            Price = command.Price
+        };
 
-            session.Store(product);
-            await session.SaveChangesAsync(cancellationToken);
+        //save to database
+        session.Store(product);
+        await session.SaveChangesAsync(cancellationToken);
 
-            return new CreateProductResult(product.Id);
-
-        }
+        //return result
+        return new CreateProductResult(product.Id);
     }
 }
