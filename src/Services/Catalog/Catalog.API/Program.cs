@@ -1,6 +1,5 @@
-using Catalog.API.Data;
 using HealthChecks.UI.Client;
-using JasperFx;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var  assembly = typeof(Program).Assembly;
