@@ -1,5 +1,6 @@
 using BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;
+using BuildingBlocks.Messaging.MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
+
+builder.Services.AddMessageBroker(builder.Configuration);
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
